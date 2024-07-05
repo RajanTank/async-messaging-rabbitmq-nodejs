@@ -69,3 +69,36 @@ Before you start, make sure you have the following installed:
   We are using direct exchange on our example for deliver asynchronous message 
 
 
+  #### DB Design
+
+ ![DB](DB.png)
+
+
+  ## Usage
+
+  - User [`amqplib`](https://github.com/amqp-node/amqplib) for the RabbitMQ 
+
+  ````
+    // Connect with RabbitMQ server 
+    const connection = await amqplib.connect(process.env.RABBIT_URI);
+
+    // Create a Channel for Communication 
+    channel = await connection.createChannel();
+    
+    // Define What type of Exchange want to implement 
+    // For this example Direct exchange used (one to one MSG)
+    await channel.assertExchange(`${receiverId}-exchange`, 'direct', { durable: true });
+
+    // Create Queue for with Consumer ID for unique identification 
+    await channel.assertQueue(receiverId, { durable: true });
+
+    // Bind Queue with Exchange 
+    await channel.bindQueue(receiverId, `${receiverId}-exchange`, `${receiverId}-log`);
+
+    // Now Publish message using channel.publish method and pass exchange which defined above
+    channel.publish(`${receiverId}-exchange`, `${receiverId}-log`, Buffer.from(JSON.stringify({ ...data, messageId: messageId })));
+
+  ````
+
+
+
